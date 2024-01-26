@@ -10,8 +10,7 @@ theme : internal
 </p>
 
 <p class="center">
-https://github.com/cmdruid/workshops/bitcoin-core
-https://github.com/cmdruid/workshops/bitcoin-core
+  https://t.ly/JimmS
 </p>
 
 ---
@@ -192,5 +191,5 @@ https://github.com/cmdruid/workshops/bitcoin-core
   * twitter/x: @btctechsupport
 
 * Link to presentation:
-  * http://github.com/cmdruid/workshops/bitcoin-core
-  * <short link here>
+  * https://github.com/cmdruid/workshops/bitcoin-core
+  * https://t.ly/JimmS

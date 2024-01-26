@@ -1,0 +1,15 @@
+/*
+ * @theme internal
+ * @auto-scaling true
+ */
+
+@import 'default';
+
+h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.center {
+  text-align: center;
+}

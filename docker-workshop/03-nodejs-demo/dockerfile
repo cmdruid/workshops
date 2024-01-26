@@ -1,0 +1,15 @@
+## Specify a base image to build from.
+FROM node:latest
+
+## Update your current working directory.
+WORKDIR /root
+
+## Install node dependencies.
+RUN npm install -g nodemon
+RUN npm install express
+
+## Set command to run when container starts.
+ENTRYPOINT [ "nodemon" ]
+
+## OPTIONAL: Provide arguments to use with above command.
+CMD [ "src/app.mjs" ]

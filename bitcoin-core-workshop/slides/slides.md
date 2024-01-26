@@ -191,5 +191,4 @@ theme : internal
   * twitter/x: @btctechsupport
 
 * Link to presentation:
-  * https://github.com/cmdruid/workshops/bitcoin-core
   * https://t.ly/JimmS

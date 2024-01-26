@@ -1,9 +1,12 @@
 ---
 marp  : true
-theme : internal
+theme : default
+class : invert
 ---
 
 # Building on Bitcoin Core
+
+</br>
 
 <p class="center">
   By Topher Scott
@@ -15,19 +18,17 @@ theme : internal
 
 ---
 
+<!-- class: _invert -->
+
 # What is Bitcoin Core?
 
 * The original client created by Satoshi Nakamoto. Written in C++.
 
-* The most dominant client in the ecosystem.
+* The most dominant node implementation in the ecosystem.
 
 * Light, portable binary with few dependencies.
 
 * A basic GUI client wallet, with a developer console.
-
-* The gold standard on consensus rules.
-
-* A repository of documentation, scripts, and tools.
 
 <!-- 
   * Do we have a visual breakdown of clients in the space?
@@ -46,7 +47,9 @@ theme : internal
   https://bitcoin.org/en/full-node
 
 * Build from Source
-  https://github.com/bitcoin/bitcoin/tree/master/doc
+  https://github.com/bitcoin/bitcoin
+
+![bg right:35% w:300](./img/bitcoin.png)
 
 ---
 
@@ -64,6 +67,8 @@ theme : internal
   ```
 
 <i>https://jlopp.github.io/bitcoin-core-config-generator</i>
+
+![bg left:25% w:400](./img/config.jpg)
 
 ---
 
@@ -92,6 +97,8 @@ theme : internal
 * Use our wallet to send / receive funds.
 
 * View our transaction on the blockchain.
+
+![bg right:40% w:400](./img/qt-client.png)
 
 ---
 
@@ -127,6 +134,8 @@ theme : internal
 * Indexes can get very large (600+GB).
 
 * You can mock up your own indexer for local testing.
+
+![bg left:30% w:300](./img/silo.png)
 
 ---
 
@@ -182,13 +191,23 @@ theme : internal
 
 <i>https://github.com/cmdruid/core-cmd</i>
 
+![bg left:35% w:300](./img/bun.png)
+
 ---
+
+<!-- class: invert -->
 
 # Go out and build!
 
+</br>
+
 * Contract Info:
-  * github.com/cmdruid
-  * twitter/x: @btctechsupport
+  github.com/cmdruid
+  twitter/x: @btctechsupport
+
+</br>
 
 * Link to presentation:
-  * https://t.ly/JimmS
+  https://t.ly/JimmS
+
+![bg right:45% w:350](./img/dip.jpeg)

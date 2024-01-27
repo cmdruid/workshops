@@ -16,9 +16,23 @@ class : invert
   https://t.ly/JimmS
 </p>
 
+![bg right:35% w:250](./img/qrcode.png)
+
 ---
 
 <!-- class: _invert -->
+
+# Presentation Goal
+
+* Download, install, and configure Bitcoin Core.
+
+* Generate funds, use the wallet, and run commands.
+
+* Communicate with core using shell or HTTP requests.
+
+* Wrap the core client with a webserver.
+
+---
 
 # What is Bitcoin Core?
 
@@ -38,9 +52,9 @@ class : invert
 
 ---
 
-# Installing Bitcoin Core
+# Running Bitcoin Core
 
-* Download Bitcoin Core
+* Download Links
   https://bitcoin.org/en/download
 
 * Installation Guide
@@ -53,7 +67,7 @@ class : invert
 
 ---
 
-# Configuring Bitcoin Core
+# Configure Bitcoin Core
 
 * Using the command line:
   `bitcoin-qt -regtest`
@@ -70,19 +84,29 @@ class : invert
 
 ![bg left:25% w:400](./img/config.jpg)
 
+<!--
+  * There are many, many great config options to play with.
+
+  * You can also specify a config file using -conf="path", which is great for scripts.
+-->
+
 ---
 
-# Choosing a Network (blockchain)
+# Choose a Network (blockchain)
 
 * **regtest** : Internal testing. Can generate blocks freely.
 
 * **signet**  : Public / feature testing. Can host your own chain.
 
-* **testnet** : Staging / final testing. Follows main consensus code.
+* **testnet** : Staging / final testing. Follows the main chain.
 
 * **main**    : The main chain that we all know and love.
 
 * **mutiny**  : Custom signet fork. Allows faster issuance of blocks.
+
+<!--
+  * What additional opcodes are enabled on signet?
+-->
 
 ---
 
@@ -96,9 +120,13 @@ class : invert
 
 * Use our wallet to send / receive funds.
 
-* View our transaction on the blockchain.
+* View our transaction in the blockchain.
 
 ![bg right:40% w:400](./img/qt-client.png)
+
+<!--
+  * Homework challenge: Dump the xprv keys, load them into an HD wallet library, and try to generate the same addresses in the HD tool as in Bitcoin Core.
+-->
 
 ---
 
@@ -118,28 +146,40 @@ class : invert
 * Run as a system service:
   https://github.com/bitcoin/bitcoin/blob/master/contrib/init/bitcoind.service
 
+  <!--
+    * The core daemon can run in many places, including github actions!
+  -->
+
 ---
 
-# Indexing Block Data
+# Indexing Data
 
 * Bitcoin Core has limited indexing options.
   `txindex=1`
 
-* Electrs offers an expanded index of chain data.
+* Electrum offers many new indexes of chain data.
 
-* Examples of live indexing servers:
+* Examples of indexing servers:
   - https://mempool.space
   - https://github.com/Blockstream/esplora
 
 * Indexes can get very large (600+GB).
 
-* You can mock up your own indexer for local testing.
+* You can mock up a fake index for local testing.
 
 ![bg left:30% w:300](./img/silo.png)
 
+<!-- 
+  * Explain what txindex does (fast lookups of tx).
+
+  * Explain what it doesn't do (fast lookups of adresses)
+
+  * Show a brief example of mempool.space/api (and chains)
+-->
+
 ---
 
-# Connecting to Bitcoin Core (CLI)
+# Connect to Bitcoin Core (CLI)
 
 * Generate RPC Auth String:
   https://jlopp.github.io/bitcoin-core-rpc-auth-generator
@@ -147,7 +187,9 @@ class : invert
 * Add to `bitcoin.conf` file:
   `rpcauth=regtest:84778e451d9eda98f9ea0c7bf6245e5e$ef8626caf617f9be75c5ad636f92e97aa85caa40cef578beb0147a9cdf158ee2`
 
-* Connecting to Bitcoin Core (CLI)
+* Restart Bitcoin Core.
+
+* Connect to Bitcoin Core (CLI)
 
   ```bash
   alias bcli="bitcoin-cli -rpcuser=regtest -rpcpassword=bitcoin -rpcwallet=regtest"
@@ -156,9 +198,15 @@ class : invert
 
 <i>https://developer.bitcoin.org/reference/rpc</i>
 
+<!-- 
+  * The cli tool is great for automating core through shell scripts.
+
+  * It's helpful to use an alias that includes your connection info.
+-->
+
 ---
 
-# Connecting to Bitcoin Core (JSON-RPC)
+# Connect to Bitcoin Core (JSON-RPC)
 
 ```js
 {
@@ -179,15 +227,21 @@ class : invert
 
 <i>https://github.com/bitcoin/bitcoin/blob/master/doc/JSON-RPC-interface.md</i>
 
+<!-- 
+  * JSON-RPC is better thought of as an HTTP interface.
+
+  * JSON-RPC can be configured to use an SSL certificate.
+-->
+
 ---
 
-# Wrapping Bitcoin Core
+# Wrap Bitcoin Core
 
-* Use JSON-RPC to fetch and return a response.
+* Create an http endpoint with our webserver.
 
-* Wrap the JSON-RPC call with an http endpoint.
+* Use JSON-RPC to fetch data internally.
 
-* View the endpoint in the browser.
+* Format and return the JSON-RPC in the response.
 
 <i>https://github.com/cmdruid/core-cmd</i>
 

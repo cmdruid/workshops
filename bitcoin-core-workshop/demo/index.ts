@@ -11,10 +11,12 @@ const RPC_PASS = 'bitcoin'
 const AUTH_STR = get_authstr(RPC_USER, RPC_PASS)
 
 const JSON_RES = {
-  headers : { 'Content-Type'  : 'application/json' }
+  headers : { 'Content-Type' : 'application/json' }
 }
 
-console.log('now serving on 127.0.0.1:3000 ...')
+console.log('now serving on 127.0.0.1:3000 ...\n')
+
+console.log('click here: http://127.0.0.1:3000/info')
 
 Bun.serve({
   fetch(req) {
@@ -25,9 +27,9 @@ Bun.serve({
     return new Response(`<pre>${error}\n${error.stack}</pre>`, {
       headers: {
         "Content-Type": "text/html",
-      },
-    });
-  },
+      }
+    })
+  }
 })
 
 async function router (req : Request) {
@@ -47,7 +49,7 @@ async function router (req : Request) {
   }
 }
 
-async function rpc <T = unknown | string> (
+async function rpc <T = unknown> (
   method  : string, 
   params ?: string[],
   wallet ?: string
@@ -56,13 +58,14 @@ async function rpc <T = unknown | string> (
   const end = (wallet !== undefined) ? `/wallet/${wallet}` : ''
   // Define the full url.
   const url = `${RPC_HOST}${end}`
-  // Define the request options.
+  // Define the request body.
   const body = {
     id      : crypto.randomUUID(),
     jsonrpc : 1.0,
     method,
     params  : params ?? [],
   }
+  // Define the request options.
   const opt  = {
     method  : 'POST',
     body    : stringify(body),

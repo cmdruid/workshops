@@ -1,5 +1,6 @@
 ---
 marp: true
+math: mathjax
 ---
 
 <div style="padding-top:200px;">
@@ -372,7 +373,7 @@ signature = concat(R, s)
 
 ---
 
-# Demo
+# FROST Demo
 
 ---
 
@@ -390,9 +391,9 @@ Based on how **gPY** is constructed, you can add / remove participants, replace 
 
 ---
 
-
-# FROST Workshop
-
-* Github link
-
-* QR code
+<div style="padding-top:200px;">
+  <h1>The End</h1>
+  <img src="static/frost-qr.png" style="float:right;"/>
+  <p style="height:210px;"></p>
+  <a href="https://github.com/cmdruid/workshops">https://github.com/cmdruid/workshops</a>
+</div>

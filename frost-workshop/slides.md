@@ -2,9 +2,13 @@
 marp: true
 ---
 
-# FROST Workshop
-by Christopher Scott
-
+<div style="padding-top:200px;">
+  <h1>FROST Workshop</h1>
+  <p>by Christopher Scott</p>
+  <img src="static/frost-qr.png" style="float:right;"/>
+  <p style="height:210px;"></p>
+  <a href="https://github.com/cmdruid/workshops">https://github.com/cmdruid/workshops</a>
+</div>
 
 ---
 

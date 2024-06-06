@@ -8,4 +8,4 @@ A repository for my workshop materials. Click on the title link to visit the wor
 [Docker Crash Course](docker-workshop)         | Docker development workshop for btc++             |
 [FROST Workshop](frost-workshop)               | Comprehensive workshop on FROST protocol.         |
 [Nostr Devs Workshop](nostr-devs-workshop)     | First two installments of the Nostr Devs Workshop |
-[Bitcoin Taproot Workshop](taproot-workshop)   | Workshop introducting Bitcoin Taproot             |
+[Taproot Workshop](taproot-workshop)           | Workshop introducting Bitcoin Taproot             |

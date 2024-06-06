@@ -2,9 +2,13 @@
 marp: true
 ---
 
-# Taproot Workshop
-
-by Christopher Scott
+<div style="padding-top:200px;">
+  <h1>Taproot Workshop</h1>
+  <p>by Christopher Scott</p>
+  <img src="static/taproot-qr.png" style="float:right;"/>
+  <p style="height:210px;"></p>
+  <a href="https://github.com/cmdruid/workshops">https://github.com/cmdruid/workshops</a>
+</div>
 
 ---
 
@@ -167,10 +171,9 @@ https://docs.lightning.engineering/the-lightning-network/taproot-assets/taproot-
 
 ---
 
-# Resources
-
-* BIPS
-
-* Tapscript
-
-* Bitcoin Wiki
+<div style="padding-top:200px;">
+  <h1>The End</h1>
+  <img src="static/taproot-qr.png" style="float:right;"/>
+  <p style="height:210px;"></p>
+  <a href="https://github.com/cmdruid/workshops">https://github.com/cmdruid/workshops</a>
+</div>

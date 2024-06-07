@@ -19,7 +19,7 @@ math: mathjax
 
 * Published in December, 2020 by Chelsea Komlo and Iam Goldberg.
 
-* Builds on top of the Shamir Secret Sharing (SSS) protocol.
+* Builds on top of the Shamir Secret Sharing (SSS) and Pederson Distributed Key Generation (DKG) protocols.
 
 * Use secret shares to sign a message as a group, without revealing the group secret or your share to others.
 
@@ -28,9 +28,7 @@ math: mathjax
 
   * Chelsea works for Zcash foundation.
 
-  * Fixes a forged-signature vulnerability that was present in previous protocols.
-
-  * Similar to the Musig2 (BIP327) protocol, but for shamir secrets.
+  * They published a draft specification through IETF and paid for independent audits of the protocol.
 -->
 
 ---
@@ -57,45 +55,27 @@ math: mathjax
 
 ---
 
-# What is not defined in FROST?
+# FROST Crash Course
 
-* How secret shares are generated for participants.
-
-* Delivery of Shares / Nonces / Signatures.
-
-* BIP340 Taproot.
-
-<!--
-* FROST is not a batteries-included protocol.
-
-* For compatibility with Bitcoin, some additional parts need to be added.
-
-* FROST is flexible because it does not rely on these parts being strictly defined.
-
-* In order to really understand FROST, you should also understand Shamir Secret Sharing.
--->
-
----
-
-# Shamir Secrets Crash Course
-
-* Polynomials.
-
-* Polynomial Interpolation.
+* Polynomials and Interpolation.
 
 * Shamir Secret Sharing.
 
 * Distributed Key Generation (DKG).
 
+* Attacks and vulnerabilities.
+
+* FROST signature protocol.
+
 ---
 
 # What is a Polynomial?
 
-* A math expression that consists of numbers, variables and exponents:
+* Expresses a sum of terms for one or more variables and coefficients:
 
   **P(x) = 3x$^{2}$ + 2x + 1**
 
-* Each "term" can be combined using addition, subtraction, and multiplication.
+* Terms can be combined using addition, subtraction, and multiplication.
 
 * The relationship between **P(x)** and **x** can be plotted on a graph:
 
@@ -103,6 +83,8 @@ math: mathjax
 
 <!--
 * Polynomials can range from being very simple, to very complex.
+
+* Polynomials describe the relationship between variables by expressing one as a function of the other, using a sum of powers with coefficients.
 
 * The secp256k1 curve is visible when modeled over a small range of real numbers (ex: -8 ~ 8+).
 -->
@@ -179,15 +161,58 @@ For each participant :
 
 * Share **gx** is a part of unknown group polynomial **gP(x)**.
 
-Participants must collect **t** shares to create **gP**, which reveals **gP(0) = gS**.
+Participants must collect **t** shares to create **gP**, which contains **gP(0) = gS**.
 
-But what if we don't want to reveal **gS** when **t** shares are combined?
+<!--
+* Using DKG, we have the basis for a multi-signature protocol with a threshold.
+-->
+
+---
+
+# Attacks on Schnorr Multi-Signatures
+
+* Subset sum attack.
+
+* Chosen message attack.
+
+* Wagner's Algorithm.
+
+* ROS Attack.
+
+<!--
+
+There is a popular concept in probability theory called the birthday paradox:
+
+In a small group of people, and with 365 days in a year, there is a high likelihood that two people share the same birthday.
+
+25 people : 56%
+30 people : 70%
+50 people : 97%
+
+The birthday paradox highlights the likelihood that two random elements in a set are equal.
+
+A subset sum attack searches through a set of numbers for a subset of numbers that sum to a target value.
+
+This attack can be used to manipulate a signature or set of signatures, and produce a forged signature.
+
+A chosen message attack is used to manipulate a cryptographic protocol so that it reduces to a subset sum problem.
+
+In 2002, Wagner's algorithm was introduced by David Wagner. It's designed to solve certain subset sum problems very efficiently. This made a lot of cryptographers nervous.
+
+In 2019, Roel Drijvers demonstrated the vulnerability of certain Schnorr-based multi-signature schemes to Wagner's algorithm.
+
+In 2020, Fabrice Benhamouda demonstrated another attack that could be used to parallelize the wagner algorithm and forge digital signatures in a matter of minutes.
+
+The paper is nick-named "the ROS paper", which stands for Random inhomogeneities in a Overdetermined Solvable system of linear equations.
+
+These attacks broke a lot of security assumptions surrounding DKG and multi-signature protocols.
+-->
 
 ---
 
 # The FROST Protocol
 
-FROST defines a safe protocol for collaboratively signing a message using secret shares, without revealing the group secret, or your share to others.
+FROST defines a secure and efficient protocol for signing a message using schnorr and secret shares.
 
 For each participant:
 
@@ -283,44 +308,27 @@ for p in participants:
 
 # Why are we doing this?
 
-* The nonce value is the most vulnerable part of a digital signature.
+* The nonce value is the most vulnerable part of a digital signature. It sits between your private key and the world.
 
-* The nonce value is what sits between your private key and the world.
+* Allowing influence over this nonce is very dangerous. Nonce manipulation is the basis of many different types attacks.
 
-* Allowing strangers to influence this nonce is very dangerous.
-
-* The group nonce must *not* be gameable.
-
-* Contributions to the group nonce must have zero effect on its entropy.
+* The group nonce value must *not* be gameable by any participant in the group, in any sort of way.
 
 <!--
-* There are numerous attacks that involve manipulating the nonce (ROS).
-
-* The core principle of FROST is to protect your secret share from being manipulated or revealed.
-
 * Creating the group nonce for a signature is really the meat and potatoes of FROST.
-
-* When you are dealing with cryptography, a concept of entropy is a very important thing to have.
-
-* Good rule of thumb to remember: When you pick from a pool of one million numbers, each number must have a one-in-a-million chance. Bias reduces entropy.
-
-* If the nonce is brute-forcable, then your secret key can be extracted from the signature. If bitcoin is involved, those funds are compromised.
-
-
-
 -->
  
 ---
 
 # Creating a Partial Signature
 
-* We have to negate our nonce values if the group nonce has an odd y-value.
+* Taproot: We have to negate our nonce values if the group nonce has an odd y-value.
 
-* We also have to calculate the parity and accumulative parity of the group public key when tweaks are applied.
+* Taproot: We also have to calculate the parity and accumulative parity of the group public key when tweaks are applied.
 
-* Compute lambda coefficient for the participant's secret share.
+* Taproot: Compute the challenge using BIP340.
 
-* Compute the challenge using BIP340.
+* Compute **x** coefficient for the participant's secret share.
 
 * Compute the participant's secret nonce.
 
@@ -370,6 +378,18 @@ s = ps_1 + ps_2 + ... + ps_t + T
 # Return the final schnorr signature.
 signature = concat(R, s)
 ```
+
+---
+
+# Protocol Misbehavior
+
+* Participant share contributions must be verified (using VSS).
+
+* Partial signatures must be verified.
+
+* FROST trades robustness for efficiency.
+
+* ROAST offers a more robust version of FROST.
 
 ---
 

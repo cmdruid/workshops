@@ -26,11 +26,11 @@ marp: true
 
 # Features of Taproot
 
-* Schnorr-based signatures. This allows easier aggregation of signatures, plus a lot of new cryptography protocols (such as FROST).
+* Schnorr-based signatures. Allows easier aggregation of signatures, plus new cryptography protocols (such as FROST).
 
-* Moved back to using naked public keys on-chain, and shortened them to 32 bytes (x-only). Keys are encoded using bech32m.
+* Reverted back to using naked public keys on-chain, and shortened them to 32 bytes (x-only). Keys are encoded using bech32m.
 
-* Key-spends now only require a 64-byte signature, which makes simple taproot transactions cheaper than segwit.
+* Key-spends now just require a 64-byte signature, which makes simple taproot transactions cheaper than segwit.
 
 * OP_CHECKMULTISIG replaced with OP_CHECKSIGADD (which uses schnorr). Allows custom values for keys weights in a scripted multi-sig.
 
@@ -46,11 +46,30 @@ marp: true
 
 * Each branch node is the hash of its children.
 
-* The root hash is a commitment to all leaves and their location.
+* The final branch node is considered the root.
 
-* You can prove a leaf is included in the tree with minimal data.
+<img src="static/hash-tree.png" style="padding-left:300px;width:400px;"/>
 
-<img src="static/hash-tree.png" style="padding-left:350px;width:350px;"/>
+---
+
+# Why Merkle Trees
+
+* The root hash commits to all leaves and their location.
+
+* You can prove a leaf is included with minimal data.
+
+* They are very fast to search and update (**O(logn)**).
+
+<!--
+**Operation	Complexity**
+
+Space     :	O(n)
+Searching :	O(logn)
+Traversal :	O(n)
+Insertion :	O(logn)
+Deletion  :	O(logn)
+Sync      :	O(logn)
+-->
 
 ---
 
@@ -60,89 +79,212 @@ marp: true
 
 * You can also store the hashes of *any* other data in the tree.
 
-* To lock bitcoin to a MAST, use a public key tweaked with the root hash.
-
-* To disable spending from the public key, use a provably unspendable key.
-
-* To spend with a script, you reveal the desired script in the witness, along with a merkle proof, or proof of inclusion (called the "control block").
+* To spend with a script, you reveal the desired script along with a merkle proof (called the "control block").
 
 * This proof does not reveal any other scripts or data within the tree.
 
 ---
 
-# MAST Considerations
+# Tagged Hashing
 
-* Taproot has no opinions on tree structure.
+* Introduced in BIP340.
+
+* Provides domain separation for hashes.
+
+* Prevents hash collisions with other protocols.
+
+```py
+def hash340 (tagstr, ...data):
+  # The tag hash is a sha256 digest of the string.
+  taghash  = sha256(encode(tagstr)) 
+  # Prefix the data with the tag hash twice.
+  preimage = concat(taghash, taghash, ...data)
+  # Return the sha256 digest of the pre-image.
+  return sha256(preimage)
+```
+
+<!--
+* Without tagged hashing, a BIP340 signature could be valid for another signature scheme where the only difference is the ordering of terms in the signature itself.
+
+* Worse, this other signature protocol may recompute the same nonce and possibly leak the private key.
+-->
+
+---
+
+# Example Script Paths
+
+* Path A: Unlock with a signature from `pubkey_a`.
+
+* Path B: Unlock with a `preimage` and signature from `pubkey_b`.
+
+* Path C: After 2048 blocks, unlock with a signature from `pubkey_c`.
+
+```json
+[
+  [ "<pubkey_a>", "OP_CHECKSIG" ],
+  [ "OP_HASH160", "<hash>", "OP_EQUALVERIFY", "<pubkey_b>", "OP_CHECKSIG" ],
+  [ "2048", "OP_CHECKSEQUENCEVERIFY", "OP_DROP", "<pubkey_c>", "OP_CHECKSIG" ]
+]
+```
+
+---
+
+# Creating the Leaves
+
+```py
+# Default MAST version for taproot.
+DEFAULT_VERSION = 0xc0
+
+# Compute a tapleaf hash.
+def get_tap_leaf(script, version = DEFAULT_VERSION):
+  # Encode the script as bytes.
+  script_hex   = encode_script(script)
+  # Normalize the version parity bit.
+  leaf_version = version & 0xfe
+  # Return a tagged hash of the serialized script.
+  return hash340('TapLeaf', leaf_version, script_hex)
+```
+
+```
+0807eaaea88f9334ac6239800261928924a3a921a92256523c43c05b85b06da5
+fe938722046a4c6c6955d917f1d33b0a0b5d79173c76ed39c9ab50cc772aace0
+d9dbdf499e22e2998378310c6241bc1458c888f1fecce853ff946474d9b1db66
+```
+
+---
+
+# Computing the Branches
+
+* Nodes are sorted in lexographical order.
+
+* This example naively assumes a balanced tree.
+
+```py
+def compute_branch (node_a, node_b):
+  # Compare and sort nodes.
+  if node_b < node_a:
+    node_a, node_b = node_b, node_a
+  # Return a tagged hash of both nodes.
+  return hash340('TapBranch', node_a, node_b)
+```
+
+```
+d1e80d43a973b446dac609e96c5932bb2159d73bfc460e79a726e8b16a66b3ab
+2da3d9180c1f0f4c0028efdaf62b6a44e962bf7a350a434a49503d9250520aa0
+```
+---
+
+# Computing the MAST Root
+
+* Taproot is very naive towards tree structure.
 
 * Trees can be unbalanced, and leaves can have varying depths.
 
-* When computing branches, children are sorted lexographically.
+* Most implementations use a complete, balanced binary tree.
 
-* The verifier algorithm simply starts with a script hash, then consumes the merkle proof 32 bytes at a time.
+* The verifier algorithm starts with a script hash, then consumes the merkle proof 32 bytes at a time.
 
----
-
-# Validating a Bitcoin MAST
-
-* The script (when hashed) + merkle proof must compute the merke root.
-* The internal pubkey + merkle root tweak must equal the on-chain pubkey.
-* For OP_CHECKSIG, the sighash must commit to the script (as an "extension").
+<!--
+* To balance a tree, sort all leaves lexographically, then copy the last element.
+-->
 
 ---
 
-# Creating a Taproot Tree
+# Creating the Taproot Tweak
 
-* Show list of scripts.
+* Compute a tweak value using the internal pubkey and root hash.
 
-* Tapleaf version.
+```py
+def get_tap_tweak(internal_pubkey, root_hash):
+  # Make sure the internal key is x-only.
+  internal_pubkey = get_xonly_key(internal_pubkey)
+  # Return a tagged commitment to the internal key and root hash.
+  return hash340('TapTweak', internal_pubkey, root_hash).digest
+```
 
-* Show scripts hashed.
-
-* Balancing a tree.
-
-* Show branches hashed.
-
-* Show root.
+```
+root  : bf8217433e921df96bb9e5c946500c2f50903127dcd7f9737275416d7d12a5e0
+tweak : a33249257ae7d48c2320b2e0e7b09a4469d2387128aa3909d8ad33f7d6b9eb12
+addr  : bcrt1p3vm5tgyx2azh4cudlga0h2jxuyc56mkku7r82ylgnfm86hfttzcs009tdf
+```
 
 ---
 
 # Deriving a Taproot Address
 
-* Create the tweak.
+* The internal key can be a single pubkey, or Musig / FROST group pubkey.
 
-* Tweak the public key.
+* Tweak the internal public key with the taproot tweak.
 
-* Format using bech32m.
+* For script-only spending, use a provably un-spendable key (BIP341).
 
-* Using an unspendable key (hashed, serialized generator point)
+* Format the key using bech32m.
+
+```py
+taproot_tweak   = get_tap_tweak(internal_pubkey, root_hash)
+taproot_pubkey  = tweak_pubkey(internal_pubkey, taproot_tweak)
+locking_script  = encode_script([ 'OP_1', taproot_pubkey ])
+taproot_address = bech32m.encode(locking_script)
+```
 
 ---
 
 # The Control Block
 
-* Show a color-highlighted diagram of the control block.
+* First segment is a version bit for the MAST protocol.
 
-* Outline what each item is.
+* The LSB of the version bit defines the parity of the internal pubkey.
 
-* Control block version.
+* Second segment is the 32-byte internal public key.
 
-* Internal key.
+* Remaining data contains the merkle proof (in 32-byte segments).
 
-* Merkle proof.
+```
+c1
+1340a0cdc67100268fd325ff41ddc736e7fc2b078526758633e0c2d260fd1afa
+0807eaaea88f9334ac6239800261928924a3a921a92256523c43c05b85b06da5
+2da3d9180c1f0f4c0028efdaf62b6a44e962bf7a350a434a49503d9250520aa0
+```
 
 ---
 
 # Spending from a MAST
 
-* Sign the transaction (with script extension).
+* Sign the transaction using BIP341 (with script extension).
 
-* Compute the control block.
+* Include the witness data (arguments, script, cblock).
 
-* Format the witness (arguments, script, cblock)
+```py
+# Transaction input.
+vin : [
+  {
+    txid : 'e0b1b0aea95095bf7e113c37562a51cb8c3f50f5145c17952e766f7a84fcc5d7'
+    vout : 0,
+    prevout : {
+      value : 100_000,
+      scriptPubKey : [ 'OP_1', taproot_pubkey ]
+    }
+    sequence : 2048,
+    witness  : [ signature, script_hex, cblock ]
+  }
+]
+```
 
 ---
 
-# BONUS: Using MAST to store data
+# Verifying a MAST
+
+* The script (as a tapleaf) + merkle proof must compute the merke root.
+
+* Each tapleaf version byte must match the control block.
+
+* The internal pubkey + merkle root tweak must equal the on-chain pubkey.
+
+* For OP_CHECKSIG, the sighash must commit to the script tapleaf being spent.
+
+---
+
+# Using MAST to prove data
 
 * Sparse Merkle Trees
 
@@ -168,6 +310,20 @@ Merkle Sum trees allow efficient verification of conservation (non-inflation) by
 
 https://docs.lightning.engineering/the-lightning-network/taproot-assets/taproot-assets-protocol
 -->
+
+---
+
+# Using Scripts to store data
+
+* The taproot upgrade removed the limits on script size in a transaction.
+
+* You can embed data into a script using `OP_IF` as an envelope.
+
+* To spend with the script, you must also publish the data on-chain.
+
+```py
+[ '<pubkey>', 'OP_CHECKSIG' 'OP_0', 'OP_IF', '<data_payload>', 'OP_ENDIF' ]
+```
 
 ---
 

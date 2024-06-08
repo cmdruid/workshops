@@ -19,27 +19,27 @@ math: mathjax
 
 * Published in December, 2020 by Chelsea Komlo and Iam Goldberg.
 
-* Builds on top of the Shamir Secret Sharing (SSS) and Pederson Distributed Key Generation (DKG) protocols.
+* Builds on top of Shamir Secret Sharing (SSS) and Pederson Distributed Key Generation (DKG) protocols.
 
-* Use secret shares to sign a message as a group, without revealing the group secret or your share to others.
+* Allows a **k** sub-group of **n** participants to sign a message using secret shares, without revealing their share to others.
 
 <!--
   * Both authors are from University of Waterloo in Ontario, Canada.
 
-  * Chelsea works for Zcash foundation.
+  * Shamir secret sharing allows you to split a secret into multiple shares, where you only need some of the shares to recover the secret.
 
-  * They published a draft specification through IETF and paid for independent audits of the protocol.
+  * SSS and DKG are two protocols we will cover.
 -->
 
 ---
 
 # What can we do with FROST?
 
-* We can publish a signed message using **k** of **n** signatures.
+* We can publish a signed message by collecting **k** of **n** signatures.
 
 * Control magic internet money using a quorum of **k** of **n** participants.
 
-* Keep the identity of all signing participants private.
+* Keep the on-chain identity of all signing participants private.
 
 ---
 
@@ -47,15 +47,19 @@ math: mathjax
 
 * Should work with any schnorr-based digital signature protocol.
 
-* The FROST secret key can be provably unknowable (via DKG).
+* The shamir secret key can be provably unknowable (via DKG).
 
-* The **k** of **n** terms of a FROST pubkey can be updated by **k** particpants.
+* The **k** of **n** terms of a shamir pubkey can be updated by **k** particpants.
 
 * The terms can be updated without changing the pubkey or secret.
 
+<!--
+* 
+-->
+
 ---
 
-# FROST Crash Course
+# Crash Course Topics
 
 * Polynomials and Interpolation.
 
@@ -73,18 +77,22 @@ math: mathjax
 
 * Expresses a sum of terms for one or more variables and coefficients:
 
-  **P(x) = 3x$^{2}$ + 2x + 1**
-
-* Terms can be combined using addition, subtraction, and multiplication.
+  **P(x) = 3x$^{2}$ + 2x - 1**
 
 * The relationship between **P(x)** and **x** can be plotted on a graph:
 
   ![](static/nhutd.png) **P(x)$^{2}$ = x$^{3}$ + 7** 
 
 <!--
+* Terms can be combined using addition, subtraction, and multiplication
+
 * Polynomials can range from being very simple, to very complex.
 
-* Polynomials describe the relationship between variables by expressing one as a function of the other, using a sum of powers with coefficients.
+* Polynomials describe the relationship between variables, their terms, and the sum.
+
+* Essentially, plug in x, get the sum of the polynomial evaluated at x.
+
+* You can plot x and the sum (y) on a graph.
 
 * The secp256k1 curve is visible when modeled over a small range of real numbers (ex: -8 ~ 8+).
 -->
@@ -104,22 +112,34 @@ math: mathjax
 <img src="static/lagrange.jpg" style="padding-left:50px;height:300px;width:400px;"/>
 
 <!--
-  * New data points will follow the "curve" that passes through the existing set of points.
+  * Before we started with a polynomial, then produced data points by evaluating x.
+  
+  * With interpolation, we start with the data points, and create the polynomial.
 
-  * This is only part of the formula. Not pictured is the Basis Polynomials (L).
+  * We use these data points to create a new polynomial, which models these points.
+  
+  * By evaluating P(x), we can produce new data points in the set.
+  
+  * These new data points carry the same relationship as the original points.
+
+  * (i.e they will follow the "curve" that passes through the existing set)
+
+  * Note: This is only part of the formula. Not pictured is the Basis Polynomials (L).
 -->
 
 ---
 
 # Shamir Secret Shares
 
+* Create a set of numbers from **a1** to **a$_{t-1}$**.
+
 * Create the following polynomial of degree (**t - 1**) with constant term **S**:
 
   **P1(x) = **S** + a1x + a2x$^{2}$ + ... + a$_{t-1}$x$^{t-1}$**
 
-* For each **P1(x)** we evaluate, we receive a new point (called a "share").
+* For each **P1(x)** we evaluate, we receive a data point (called a "share").
 
-* Using **t** number of shares, we create a second polynomial via interpolation.
+* Using interpolation, we create a second polynomial using **t** number of shares.
 
   **P2(x) = y$_{1}$L$_{1}$(x) + y$_{2}$L$_{2}$(x) + ... + y$_{t}$L$_{t}$(x)**
 
@@ -141,7 +161,7 @@ math: mathjax
 
 * Because **t** shares will reveal **S**, each share must be kept secret.
 
-* Shamir assumes one person will generate all shares.
+* The protocol assumes one person will generate all shares.
 
 * We need a polynomial that is shared by a group of adversaries.
 
@@ -153,17 +173,21 @@ math: mathjax
 
 For each participant :
 
-* Create a polynomial with random **S** and threshold **t**.
+* Create your own shamir secret with random values and threshold **t**.
 
-* Deliver share **P(x)** to every participant **x** (including you).
+* Create a share for each participant **x** in the group (including you).
 
-* Sum all participant shares (including yours) into share **gx**.
+* Deliver each share to participant **x**, and collect your own shares.
 
-* Share **gx** is a part of unknown group polynomial **gP(x)**.
+* Sum the collected shares (including your private share) into share **gx**.
 
-Participants must collect **t** shares to create **gP**, which contains **gP(0) = gS**.
+* Share **gx** is a part of group polynomial **gP(x)**, which is unknown.
+
+Participants must collect **t** shares to construct **gP**, and recover **gP(0) = gS**.
 
 <!--
+* Torben Pryds Pedersen is a Danish cryptographer that has made number contributions to cryptography.
+
 * Using DKG, we have the basis for a multi-signature protocol with a threshold.
 -->
 
@@ -173,8 +197,6 @@ Participants must collect **t** shares to create **gP**, which contains **gP(0) 
 
 * Subset sum attack.
 
-* Chosen message attack.
-
 * Wagner's Algorithm.
 
 * ROS Attack.
@@ -183,7 +205,7 @@ Participants must collect **t** shares to create **gP**, which contains **gP(0) 
 
 There is a popular concept in probability theory called the birthday paradox:
 
-In a small group of people, and with 365 days in a year, there is a high likelihood that two people share the same birthday.
+In a small group of people, and with 365 days in a year, there is a suprisingly high likelihood that two people share the same birthday.
 
 25 people : 56%
 30 people : 70%
@@ -191,36 +213,66 @@ In a small group of people, and with 365 days in a year, there is a high likelih
 
 The birthday paradox highlights the likelihood that two random elements in a set are equal.
 
-A subset sum attack searches through a set of numbers for a subset of numbers that sum to a target value.
-
-This attack can be used to manipulate a signature or set of signatures, and produce a forged signature.
+A subset sum attack searches through a set of numbers, and finds a subset of those numbers which sum to a target value.
 
 A chosen message attack is used to manipulate a cryptographic protocol so that it reduces to a subset sum problem.
 
+This attack can be used to manipulate a set of signatures and produce a forged signature.
+
 In 2002, Wagner's algorithm was introduced by David Wagner. It's designed to solve certain subset sum problems very efficiently. This made a lot of cryptographers nervous.
 
-In 2019, Roel Drijvers demonstrated the vulnerability of certain Schnorr-based multi-signature schemes to Wagner's algorithm.
+In 2019, Roel Drijvers demonstrated the vulnerability of schnorr-based multi-signature schemes to Wagner's algorithm.
 
 In 2020, Fabrice Benhamouda demonstrated another attack that could be used to parallelize the wagner algorithm and forge digital signatures in a matter of minutes.
 
 The paper is nick-named "the ROS paper", which stands for Random inhomogeneities in a Overdetermined Solvable system of linear equations.
 
-These attacks broke a lot of security assumptions surrounding DKG and multi-signature protocols.
+These attacks broke a lot of security assumptions surrounding schnorr, DKG and multi-signature protocols.
 -->
 
 ---
 
-# The FROST Protocol
+# Development of FROST
 
-FROST defines a secure and efficient protocol for signing a message using schnorr and secret shares.
+* Published by researchers from University of Waterloo.
+
+* Developed by engineers from Zcash and Cloudflare.
+
+* Draft specification available on IETF.
+
+* Rust implementation on ZCash Github, backed by multiple security audits.
+
+* Many test implementations available in the wild.
+
+<!--
+
+  * Chelsea Komlo, Ian Goldberg, Chris Wood, Nick Sullivan.
+
+  * The zcash foundation is very interested in FROST.
+
+  * They worked with the IETF to publish an official draft specification for the protocol.
+  
+  * Zcash foundation also paid for independent audits of the protocol.
+
+  * The Internet Engineering Task Force.
+
+  * https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.txt
+
+-->
+
+---
+
+# How FROST Works
+
+FROST defines a safe, secure and efficient protocol for signing a message using schnorr and secret shares.
 
 For each participant:
 
-* Step 1: Create and distribute public nonce values (Round 1).
+* Step 1: Create and distribute two public nonce values (Round 1).
 
 * Step 2: Collect other nonces, compute the group nonce and challenge.
 
-* Step 3: Sign challenge with your share + secret nonce values.
+* Step 3: Sign challenge with your secret share + secret nonce values.
 
 * Step 4: Distribute, collect and verify partial signatures (Round 2).
 
@@ -324,7 +376,7 @@ for p in participants:
 
 * Taproot: We have to negate our nonce values if the group nonce has an odd y-value.
 
-* Taproot: We also have to calculate the parity and accumulative parity of the group public key when tweaks are applied.
+* Taproot: We also have to calculate the parity and accumulative parity of the group public key when tweaks are applied (see BIP327).
 
 * Taproot: Compute the challenge using BIP340.
 
@@ -390,10 +442,6 @@ signature = concat(R, s)
 * FROST trades robustness for efficiency.
 
 * ROAST offers a more robust version of FROST.
-
----
-
-# FROST Demo
 
 ---
 

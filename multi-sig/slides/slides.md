@@ -6,9 +6,9 @@ marp: true
 
 A brief overview of multi-signature protocols for Bitcoin.
 
-</br></br></br>
+</br></br>
 
-
+<img src="res/qrcode.svg" height="250px" align="right">
 
 ---
 
@@ -309,7 +309,7 @@ Script :
 
 ### Resources
 
-* <Link to presentation github>
+* https://github.com/cmdruid/workshops
 
 ### Socials
 

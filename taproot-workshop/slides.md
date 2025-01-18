@@ -3,7 +3,7 @@ marp: true
 ---
 
 <div style="padding-top:200px;">
-  <h1>Taproot Workshop</h1>
+  <h1>Taproot MAST Workshop</h1>
   <p>by Christopher Scott</p>
   <img src="static/taproot-qr.png" style="float:right;"/>
   <p style="height:210px;"></p>
@@ -22,19 +22,28 @@ marp: true
 
 * Taproot updates the witness script engine to version 1.
 
+<!--
+  * The "segwit" update (BIP140) introduced the witness versioning system. This system upgraded bitcoin's script execution, without breaking existing consensus rules.
+-->
+
 ---
 
 # Features of Taproot
 
-* Schnorr-based signatures. Allows easier aggregation of signatures, plus new cryptography protocols (such as FROST).
+* Schnorr-based signatures. Allows simpler aggregation of signatures, plus new cryptography protocols (such as FROST).
 
-* Reverted back to using naked public keys on-chain, and shortened them to 32 bytes (x-only). Keys are encoded using bech32m.
+* Reverted to using naked public keys on-chain, shortened to 32 bytes (x-only). Keys are encoded using bech32m.
 
-* Key-spends now just require a 64-byte signature, which makes simple taproot transactions cheaper than segwit.
+* Key-spends now only require a 64-byte signature, which makes simple taproot transactions cheaper than segwit.
 
-* OP_CHECKMULTISIG replaced with OP_CHECKSIGADD (which uses schnorr). Allows custom values for keys weights in a scripted multi-sig.
+* Allows spending from a MAST of bitcoin scripts. Full proof requires a single script + internal public key + merkle proof.
 
-* Introduces MAST for script. Allows storing bitcoin scripts inside a MAST, and spending via revealing a single script + merkle proof.
+<!--
+* Internal key is the bare public key of the custodian.
+
+* Later we'll get into how the proof is constructed and verified.
+
+-->
 
 ---
 
@@ -46,9 +55,15 @@ marp: true
 
 * Each branch node is the hash of its children.
 
-* The final branch node is considered the root.
+* The final hash is considered the root.
 
 <img src="static/hash-tree.png" style="padding-left:300px;width:400px;"/>
+
+<!--
+* You start with hashing the data in each leaf node.
+
+* Then you iterate over the leaves in batches of two, 
+-->
 
 ---
 
@@ -75,9 +90,9 @@ Sync      :	O(logn)
 
 # MAST and Bitcoin Script
 
-* You can store hashes of multiple bitcoin scripts in the tree.
+* You can store a hashed bitcoin script in the tree.
 
-* You can also store the hashes of *any* other data in the tree.
+* You can also store a hash of *any* type of data in the tree.
 
 * To spend with a script, you reveal the desired script along with a merkle proof (called the "control block").
 
@@ -248,7 +263,31 @@ c1
 
 ---
 
-# Spending from a MAST
+# Spending with the Pubkey
+
+* Tweak the private key with the taproot tweak (and negate if needed).
+
+* Sign the transaction using BIP341 and include the signature.
+
+```py
+# Transaction input.
+vin : [
+  {
+    txid : 'e0b1b0aea95095bf7e113c37562a51cb8c3f50f5145c17952e766f7a84fcc5d7'
+    vout : 0,
+    prevout : {
+      value : 100_000,
+      scriptPubKey : [ 'OP_1', taproot_pubkey ]
+    }
+    sequence : 0xFFFFFF,
+    witness  : [ signature ]
+  }
+]
+```
+
+---
+
+# Spending from the MAST
 
 * Sign the transaction using BIP341 (with script extension).
 
@@ -272,11 +311,21 @@ vin : [
 
 ---
 
+# Taproot Spending Review
+
+* All taproot addresses can be spent via the on-chain pubkey, or via a script.
+
+* Key spends require tweaking the private key before signing.
+
+* Script spends require revealing the internal key + a merkle proof.
+
+* Key spending can be disabled using a provably unspendable key.
+
+---
+
 # Verifying a MAST
 
-* The script (as a tapleaf) + merkle proof must compute the merke root.
-
-* Each tapleaf version byte must match the control block.
+* The script (as a tapleaf) + merkle proof must compute up to the merke root.
 
 * The internal pubkey + merkle root tweak must equal the on-chain pubkey.
 
@@ -284,15 +333,17 @@ vin : [
 
 ---
 
-# Using MAST to prove data
+# Using MAST to prove Data
 
-* Sparse Merkle Trees
+* Basic Trees.
 
-* Merkle Sum Trees
+* Sparse Merkle Trees.
 
-* Taproot Assets
+* Merkle Sum Trees.
 
 <!--
+
+With a baasic tree, you can prove the inclusiion of a leaf within the tree. You can also imply depth based on the size of the merkle proof.
 
 A Sparse (meaning ‘thinly scattered’) Merkle tree is a data structure in which it can be proven that specific data doesn't exist within a merkle tree. An SMT is an authenticated key-value store, meaning that the key, or location, of a leaf and the content of the leaf are bound to each other.
 
@@ -313,17 +364,23 @@ https://docs.lightning.engineering/the-lightning-network/taproot-assets/taproot-
 
 ---
 
-# Using Scripts to store data
+# Using Scripts to store Data
 
 * The taproot upgrade removed the limits on script size in a transaction.
 
 * You can embed data into a script using `OP_IF` as an envelope.
 
-* To spend with the script, you must also publish the data on-chain.
+* Spending with the script also publishes the data on-chain.
 
 ```py
 [ '<pubkey>', 'OP_CHECKSIG' 'OP_0', 'OP_IF', '<data_payload>', 'OP_ENDIF' ]
 ```
+
+<!--
+* There is a transaction size limit enforced by the mempool policy of Bitcoin Core. This limit does not apply to transactions already in a block.
+
+* Miners have been known to accept non-standard transactions from outside the mempool.
+-->
 
 ---
 

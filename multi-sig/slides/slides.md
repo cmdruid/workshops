@@ -14,12 +14,12 @@ A brief overview of multi-signature protocols for Bitcoin.
 
 ## Overview
 
-* Crash-course in bitcoin and digital signatures.
-* Types of muli-sig protocols.
-* Examples of multi-sig scripts.
-* How to perform a multi-sig.
-* Caveats to using multi-sig.
-* ~~Live Demo~~
+- Crash-course in bitcoin and digital signatures.
+- Types of muli-sig protocols.
+- Examples of multi-sig scripts.
+- How to perform a multi-sig.
+- Caveats to using multi-sig.
+- ~~Live Demo~~
 
 <!--
   * This is a new presentation and still kind of rough.
@@ -33,9 +33,9 @@ A brief overview of multi-signature protocols for Bitcoin.
 
 ## Spooky Language
 
-* Multi-Signature protocol.
-* Key Derivation Paths.
-* Off-Chain State Management.
+- Multi-Signature protocol.
+- Key Derivation Paths.
+- Off-Chain State Management.
 
 ---
 
@@ -51,7 +51,7 @@ A brief overview of multi-signature protocols for Bitcoin.
 
 ## What is a Digital Signature?
 
-* A zero-knoweldge proof of knowing a secret key.
+- A zero-knoweldge proof of knowing a secret key.
 
 </br></br>
 
@@ -133,11 +133,11 @@ verify : (public_key * message) + public_nonce = signature * G
 
 ## Multi-Sig Script Examples (encoded)
 
-* `bc1qgzp5pmkse8c02uqtfrue390r5p8h45hw4matedrryr8rxwmwjvsst9j7cu`
+- `bc1qgzp5pmkse8c02uqtfrue390r5p8h45hw4matedrryr8rxwmwjvsst9j7cu`
 
-* `bc1qmy5t4q74mg9xerc9yy72cn2yc5tlhu4augd64trdv8ysz0yyg3sqx04zth`
+- `bc1qmy5t4q74mg9xerc9yy72cn2yc5tlhu4augd64trdv8ysz0yyg3sqx04zth`
 
-* `bc1pl5g3hvspykt6pacpa7vyjt04xjxqwfwja9yuh634s4p8lqx3dmqq4mpj8n`
+- `bc1pl5g3hvspykt6pacpa7vyjt04xjxqwfwja9yuh634s4p8lqx3dmqq4mpj8n`
 
 <!--
   *
@@ -309,7 +309,7 @@ Script :
 
 ### Resources
 
-* https://github.com/cmdruid/workshops
+- https://github.com/cmdruid/workshops
 
 ### Socials
 

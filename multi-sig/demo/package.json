@@ -1,0 +1,21 @@
+{
+  "name": "multi-sig-demo",
+  "version": "1.0.0",
+  "description": "Demo scripts for doing multi-sig stuff.",
+  "author": "Christopher Scott",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "scratch": "tsx scratch.ts"
+  },
+  "devDependencies": {
+    "@cmdcode/buff": "^2.2.5",
+    "@cmdcode/crypto-tools": "^2.7.6",
+    "@cmdcode/tapscript": "^1.5.3",
+    "@scure/btc-signer": "^1.6.0",
+    "@types/node": "^22.4.1",
+    "tslib": "^2.6.2",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4"
+  }
+}
